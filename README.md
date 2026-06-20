@@ -36,13 +36,13 @@ projeto-es-2026-foca-final/
 ## Pré-requisitos
 
 - Node.js 18+
-- Docker e Docker Compose
+- Docker Desktop (com o Docker rodando)
 - npm
 - Git
 
 ---
 
-## Como Rodar o Projeto
+## Como Rodar o Projeto (Primeira Vez)
 
 ### 1. Clone o repositório
 
@@ -51,72 +51,132 @@ git clone https://github.com/lightnvrr/projeto-es-2026-foca-final.git
 cd projeto-es-2026-foca-final
 ```
 
-### 2. Suba o banco de dados
+---
+
+### 2. Configure e inicie o backend
+
+Abra um terminal dentro da pasta `backend/`:
 
 ```bash
 cd backend
-docker compose up -d
 ```
 
-### 3. Configure as variáveis de ambiente do backend
-
-Copie o arquivo de exemplo e preencha as variáveis:
-
+**Suba o banco de dados:**
 ```bash
-cp .env.example .env
+docker compose -f docker-compose/postgres.docker-compose.yml up -d
 ```
 
-O arquivo `.env` deve conter:
-
+**Configure as variáveis de ambiente** — crie um arquivo `.env` na pasta `backend/` com o conteúdo:
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:3015/foca"
 JWT_SECRET="sua_chave_secreta"
 ```
 
-### 4. Instale as dependências e rode as migrations do backend
-
+**Instale as dependências e prepare o banco:**
 ```bash
 npm install
 npx prisma migrate deploy
 npx prisma generate
 npx prisma db seed
+```
+
+**Inicie o servidor:**
+```bash
 npm run dev
 ```
 
-O backend estará disponível em `http://localhost:3000`.
+O backend estará disponível em `http://localhost:3000`. Deixe esse terminal aberto.
 
-### 5. Configure e rode o frontend
+---
 
-Em outro terminal:
+### 3. Configure e inicie o frontend
+
+Abra **outro terminal** dentro da pasta `frontend/`:
 
 ```bash
-cd ../frontend
+cd frontend
+```
+
+**Instale as dependências:**
+```bash
 npm install
 ```
 
-Crie o arquivo `.env.local`:
-
+**Configure as variáveis de ambiente** — crie um arquivo `.env.local` na pasta `frontend/` com o conteúdo:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-Inicie o frontend:
-
+**Inicie o servidor:**
 ```bash
 npm run dev -- -p 3001
 ```
 
-O frontend estará disponível em `http://localhost:3001`.
+Acesse **`http://localhost:3001/login`** no navegador.
 
 ---
 
-## Usuários de Teste (Seed)
+## Como Rodar no Dia a Dia
 
-| E-mail                     | Senha      | Papel        |
-|----------------------------|------------|--------------|
-| coordenador@foca.dev       | senha123   | Coordenador  |
-| professor@foca.dev         | senha123   | Professor    |
-| aluno@foca.dev             | senha123   | Aluno        |
+Após a primeira configuração, basta rodar os seguintes comandos:
+
+**Terminal 1 — Backend:**
+```bash
+cd backend
+docker compose -f docker-compose/postgres.docker-compose.yml up -d
+npm run dev
+```
+
+**Terminal 2 — Frontend:**
+```bash
+cd frontend
+npm run dev -- -p 3001
+```
+
+---
+
+## Como Testar
+
+### Usuários disponíveis (seed)
+
+| E-mail                 | Senha    | Papel        |
+|------------------------|----------|--------------|
+| coordenador@foca.dev   | senha123 | Coordenador  |
+| professor@foca.dev     | senha123 | Professor    |
+| aluno@foca.dev         | senha123 | Aluno        |
+
+---
+
+### Fluxo de teste — Coordenador
+
+1. Acesse `http://localhost:3001/login`
+2. Faça login com `coordenador@foca.dev` / `senha123`
+3. Visualize o painel com resumo de professores ativos e inativos
+4. Clique em **Cadastrar Equipe** e registre um novo professor ou coordenador
+5. Clique em **Sair** para encerrar a sessão
+
+---
+
+### Fluxo de teste — Professor
+
+1. Faça login com `professor@foca.dev` / `senha123`
+2. Visualize o painel de monitoramento com status dos alunos por turma
+3. Alterne entre as turmas disponíveis
+4. Clique em **Cadastrar Aluno** e registre um novo aluno (informe nome, e-mail, senha, turma e turno)
+5. Clique em **Sair** para encerrar a sessão
+
+---
+
+### Fluxo de teste — Aluno
+
+1. Faça login com `aluno@foca.dev` / `senha123`
+2. Visualize as disciplinas disponíveis
+3. Clique em uma disciplina para **Iniciar** uma sessão de estudo
+4. Clique em **Pausar** para interromper a sessão
+5. Clique em **Retomar** para continuar
+6. Clique em **Concluir** para finalizar a sessão
+7. Verifique que a sessão aparece registrada na lista
+8. Clique em **Sair** para encerrar a sessão
 
 ---
 
@@ -125,14 +185,12 @@ O frontend estará disponível em `http://localhost:3001`.
 - Login com autenticação JWT por papel (aluno, professor, coordenador)
 - Painel do aluno: registro de sessões de estudo por disciplina (iniciar, pausar, retomar, concluir)
 - Painel do professor: monitoramento da rotina dos alunos por turma + cadastro de alunos
-- Painel da coordenação: visão geral dos professores + cadastro de equipe
+- Painel da coordenação: visão geral dos professores + cadastro de equipe pedagógica
 - Logout e proteção de rotas por papel
 
 ---
 
 ## Equipe
 
-Desenvolvido por: Hellem Cristina, Jamily Barbosa, João Felipe Rufino, Nildo carlos Araújo e Sarah Maria Rocha.
-Disciplina de Engenharia de Software.
-Universidade Federal de Alagoas.
-
+Desenvolvido por: Hellem Cristina, Jamily Barbosa, João Felipe Rufino, Nildo Carlos Araújo e Sarah Maria Rocha.  
+Disciplina de Engenharia de Software — Universidade Federal de Alagoas (UFAL).
