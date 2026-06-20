@@ -132,4 +132,7 @@ O frontend estará disponível em `http://localhost:3001`.
 
 ## Equipe
 
-Desenvolvido por estudantes da UFAL — Universidade Federal de Alagoas.
+Desenvolvido por: Hellem Cristina, Jamily Barbosa, João Felipe Rufino, Nildo carlos Araújo e Sarah Maria Rocha.
+Disciplina de Engenharia de Software.
+Universidade Federal de Alagoas.
+
