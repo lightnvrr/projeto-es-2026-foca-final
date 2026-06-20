@@ -1,0 +1,3 @@
+export const SESSAO_DURACAO_MAXIMA_SEG = Number(process.env.SESSAO_DURACAO_MAXIMA_SEG ?? 2700);
+export const SESSAO_MAX_DISCIPLINAS_DIA = Number(process.env.SESSAO_MAX_DISCIPLINAS_DIA ?? 3);
+export const SESSAO_MAX_POR_DISCIPLINA_DIA = Number(process.env.SESSAO_MAX_POR_DISCIPLINA_DIA ?? 2);

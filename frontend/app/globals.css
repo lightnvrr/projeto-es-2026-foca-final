@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  /* A sua paleta oficial do Figma */
+  --color-primary: #2f4157;
+  --color-primaryLight: #c7d9e5;
+  --color-secondary: #577c8e;
+  --color-surface: #ffffff;
+  --color-surfaceVariant: #f2f7fa;
+  --color-onSurfaceLight: #121921;
+}

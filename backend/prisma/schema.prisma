@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Turno {
+  MANHA
+  TARDE
+  NOITE
+}
+
+enum Role {
+  ALUNO
+  PROFESSOR
+  COORDENADOR
+}
+
+model Usuario {
+  id         Int      @id @default(autoincrement())
+  nome       String   @db.VarChar(150)
+  email      String   @unique @db.VarChar(100)
+  senha_hash String   @db.VarChar(255)
+  role       Role
+  ativo      Boolean  @default(true)
+  criado_em  DateTime @default(now())
+
+  coordenador Coordenador?
+  professor   Professor?
+  aluno       Aluno?
+
+  @@index([role])
+  @@map("usuario")
+}
+
+model Coordenador {
+  id         Int @id @default(autoincrement())
+  usuario_id Int @unique
+
+  usuario     Usuario     @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  professores Professor[]
+
+  @@map("coordenador")
+}
+
+model Professor {
+  id             Int  @id @default(autoincrement())
+  usuario_id     Int  @unique
+  coordenador_id Int?
+
+  usuario     Usuario          @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  coordenador Coordenador?     @relation(fields: [coordenador_id], references: [id], onDelete: SetNull)
+  turmas      ProfessorTurma[]
+
+  @@index([coordenador_id])
+  @@map("professor")
+}
+
+model Turma {
+  id         Int    @id @default(autoincrement())
+  nome       String @db.VarChar(50)
+  ano_letivo Int
+
+  alunos      Aluno[]
+  professores ProfessorTurma[]
+
+  @@map("turma")
+}
+
+model Disciplina {
+  id   Int    @id @default(autoincrement())
+  nome String @unique @db.VarChar(100)
+
+  professores ProfessorTurma[]
+  sessoes     SessaoEstudo[]
+
+  @@map("disciplina")
+}
+
+model Aluno {
+  id         Int   @id @default(autoincrement())
+  usuario_id Int   @unique
+  turma_id   Int
+  turno      Turno
+
+  usuario Usuario        @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  turma   Turma          @relation(fields: [turma_id], references: [id], onDelete: Cascade)
+  sessoes SessaoEstudo[]
+
+  @@index([turma_id])
+  @@map("aluno")
+}
+
+enum StatusSessao {
+  CRIADA
+  EM_ANDAMENTO
+  PAUSADA
+  CONCLUIDA
+  ENCERRADA_POR_LIMITE
+}
+
+model SessaoEstudo {
+  id              Int          @id @default(autoincrement())
+  aluno_id        Int
+  disciplina_id   Int
+  iniciada_em     DateTime     @default(now())
+  concluida_em    DateTime?
+  tempo_total_seg Int          @default(0)
+  status          StatusSessao @default(CRIADA)
+
+  aluno      Aluno      @relation(fields: [aluno_id], references: [id], onDelete: Cascade)
+  disciplina Disciplina @relation(fields: [disciplina_id], references: [id], onDelete: Cascade)
+
+  @@index([aluno_id, disciplina_id, iniciada_em])
+  @@map("sessao_estudo")
+}
+
+model ProfessorTurma {
+  professor_id  Int
+  turma_id      Int
+  disciplina_id Int
+
+  professor  Professor  @relation(fields: [professor_id], references: [id], onDelete: Cascade)
+  turma      Turma      @relation(fields: [turma_id], references: [id], onDelete: Cascade)
+  disciplina Disciplina @relation(fields: [disciplina_id], references: [id], onDelete: Cascade)
+
+  @@id([professor_id, turma_id, disciplina_id])
+  @@map("professor_turma")
+}

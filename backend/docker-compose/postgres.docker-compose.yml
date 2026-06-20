@@ -1,0 +1,16 @@
+version: "3"
+services:
+  database:
+    image: "postgres:latest"
+    container_name: foca_postgres
+    ports:
+      - "3015:5432"
+    environment:
+      POSTGRES_USER: foca_user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: foca
+    volumes:
+      - foca_db:/var/lib/postgresql
+
+volumes:
+  foca_db:
