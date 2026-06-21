@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { criarMembro, type Role } from "@/lib/api";
 
 interface FormState {
@@ -13,6 +14,7 @@ interface FormState {
 const INITIAL: FormState = { nome: "", email: "", senha: "", role: "" };
 
 export default function CadastroEquipe() {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(INITIAL);
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export default function CadastroEquipe() {
     setErro(null);
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!form.role) return;
 
@@ -162,11 +164,18 @@ export default function CadastroEquipe() {
             </p>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-4 flex gap-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex-1 border border-primary text-primary font-bold py-3 px-4 rounded-md hover:bg-primaryLight transition"
+            >
+              Voltar
+            </button>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-surface font-bold py-3 px-4 rounded-md hover:bg-secondary transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-primary text-surface font-bold py-3 px-4 rounded-md hover:bg-secondary transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Cadastrando..." : "Cadastrar Membro da Equipe"}
             </button>
