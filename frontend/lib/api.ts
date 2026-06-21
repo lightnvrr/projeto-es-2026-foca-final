@@ -99,6 +99,18 @@ export async function getDisciplinas(): Promise<Disciplina[]> {
   return res.json() as Promise<Disciplina[]>;
 }
 
+// ── Turmas ───────────────────────────────────────────────────────────────────
+
+export interface Turma {
+  id: number;
+  nome: string;
+  ano_letivo: number;
+}
+
+export async function getTurmas(): Promise<Turma[]> {
+  return request<Turma[]>('/turmas');
+}
+
 // ── Sessões ──────────────────────────────────────────────────────────────────
 
 export type StatusSessao =

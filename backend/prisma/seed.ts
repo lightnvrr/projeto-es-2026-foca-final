@@ -44,11 +44,20 @@ async function seedDisciplinas() {
 async function seedUsers_() {
   const senhaHash = await bcrypt.hash(SEED_PASSWORD, 10);
 
-  const turma = await prisma.turma.upsert({
-    where: { id: 1 },
-    update: {},
-    create: { nome: 'Turma Seed', ano_letivo: new Date().getFullYear() },
-  });
+  const anoLetivo = new Date().getFullYear();
+  const turmasData = [
+    { id: 1, nome: '1º Ano A', ano_letivo: anoLetivo },
+    { id: 2, nome: '2º Ano B', ano_letivo: anoLetivo },
+    { id: 3, nome: '3º Ano - Foco ENEM', ano_letivo: anoLetivo },
+  ];
+  for (const t of turmasData) {
+    await prisma.turma.upsert({
+      where: { id: t.id },
+      update: { nome: t.nome, ano_letivo: t.ano_letivo },
+      create: t,
+    });
+  }
+  const turma = { id: 1 };
 
   for (const { nome, email, role } of seedUsers) {
     const usuario = await prisma.usuario.upsert({

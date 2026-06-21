@@ -3,6 +3,7 @@ import { userRoutes } from './user.route';
 import { authRoutes } from './auth.routes';
 import { disciplinaRoutes } from './disciplina.route';
 import { sessaoRoutes } from './sessao.route';
+import { turmaRoutes } from './turma.route';
 
 export default async function routes(instance: FastifyInstance) {
   await instance.register(userRoutes, {
@@ -19,5 +20,9 @@ export default async function routes(instance: FastifyInstance) {
 
   await instance.register(sessaoRoutes, {
     prefix: '/sessoes',
+  });
+
+  await instance.register(turmaRoutes, {
+    prefix: '/turmas',
   });
 }

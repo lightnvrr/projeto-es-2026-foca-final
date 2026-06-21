@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getToken, getRoleFromToken, criarMembro } from "@/lib/api";
+import { getToken, getRoleFromToken, criarMembro, getTurmas, type Turma } from "@/lib/api";
 
 interface FormState {
   nome: string;
@@ -17,6 +17,7 @@ const INITIAL: FormState = { nome: "", email: "", senha: "", turma_id: "", turno
 export default function CadastroAluno() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(INITIAL);
+  const [turmas, setTurmas] = useState<Turma[]>([]);
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -25,7 +26,8 @@ export default function CadastroAluno() {
     const token = getToken();
     if (!token) { router.push("/login"); return; }
     const role = getRoleFromToken();
-    if (role !== "PROFESSOR" && role !== "COORDENADOR") router.push("/login");
+    if (role !== "PROFESSOR" && role !== "COORDENADOR") { router.push("/login"); return; }
+    getTurmas().then(setTurmas).catch(() => {});
   }, [router]);
 
   function change(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
@@ -34,7 +36,7 @@ export default function CadastroAluno() {
     setErro(null);
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!form.turno) return;
     setLoading(true);
@@ -139,9 +141,9 @@ export default function CadastroAluno() {
                 className="w-full p-3 border border-primaryLight rounded-md focus:outline-none focus:ring-2 focus:ring-secondary text-onSurfaceLight bg-surface"
               >
                 <option value="">Selecione a turma...</option>
-                <option value="1">1º Ano A</option>
-                <option value="2">2º Ano B</option>
-                <option value="3">3º Ano - Foco ENEM</option>
+                {turmas.map((t) => (
+                  <option key={t.id} value={t.id}>{t.nome}</option>
+                ))}
               </select>
             </div>
 
