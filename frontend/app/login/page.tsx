@@ -10,11 +10,27 @@ export default function LoginPage() {
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [emailErro, setEmailErro] = useState<string | null>(null);
+  const [senhaErro, setSenhaErro] = useState<string | null>(null);
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
+    setEmailErro(null);
+    setSenhaErro(null);
     setErro(null);
+
+    let valido = true;
+    if (!email) {
+      setEmailErro("Preencha este campo");
+      valido = false;
+    }
+    if (!senha) {
+      setSenhaErro("Preencha este campo");
+      valido = false;
+    }
+    if (!valido) return;
+
+    setLoading(true);
     try {
       await login(email, senha);
       const role = getRoleFromToken();
@@ -45,7 +61,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <div>
             <label className="block text-sm font-semibold text-primary mb-1">
               E-mail Institucional
@@ -54,10 +70,10 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
               placeholder="seu@email.com.br"
-              className="w-full p-3 border border-primaryLight rounded-md focus:outline-none focus:ring-2 focus:ring-secondary text-onSurfaceLight"
+              className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-secondary text-onSurfaceLight ${emailErro ? "border-red-500" : "border-primaryLight"}`}
             />
+            {emailErro && <p className="mt-1 text-xs text-red-600">{emailErro}</p>}
           </div>
 
           <div>
@@ -68,10 +84,10 @@ export default function LoginPage() {
               type="password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              required
               placeholder="••••••••"
-              className="w-full p-3 border border-primaryLight rounded-md focus:outline-none focus:ring-2 focus:ring-secondary text-onSurfaceLight"
+              className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-secondary text-onSurfaceLight ${senhaErro ? "border-red-500" : "border-primaryLight"}`}
             />
+            {senhaErro && <p className="mt-1 text-xs text-red-600">{senhaErro}</p>}
           </div>
 
           <div className="pt-2">
