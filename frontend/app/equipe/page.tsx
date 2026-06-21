@@ -144,25 +144,24 @@ export default function CadastroEquipe() {
           </div>
 
           {/* Turmas vinculadas — integração pendente de endpoint no backend */}
-          <div>
-            <label className="block text-sm font-semibold text-primary mb-1">
-              Turmas Vinculadas{" "}
-              <span className="text-xs font-normal text-secondary">
-                (apenas para Professor)
-              </span>
-            </label>
-            <select
-              multiple
-              className="w-full p-3 border border-primaryLight rounded-md focus:outline-none focus:ring-2 focus:ring-secondary text-onSurfaceLight bg-surface"
-            >
-              <option value="1">1º Ano A</option>
-              <option value="2">2º Ano B</option>
-              <option value="3">3º Ano - Foco ENEM</option>
-            </select>
-            <p className="text-xs text-secondary mt-1">
-              Segure Ctrl (ou Cmd) para selecionar mais de uma turma.
-            </p>
-          </div>
+          {form.role === "PROFESSOR" && (
+            <div>
+              <label className="block text-sm font-semibold text-primary mb-1">
+                Turmas Vinculadas
+              </label>
+              <select
+                multiple
+                className="w-full p-3 border border-primaryLight rounded-md focus:outline-none focus:ring-2 focus:ring-secondary text-onSurfaceLight bg-surface"
+              >
+                <option value="1">1º Ano A</option>
+                <option value="2">2º Ano B</option>
+                <option value="3">3º Ano - Foco ENEM</option>
+              </select>
+              <p className="text-xs text-secondary mt-1">
+                Segure Ctrl (ou Cmd) para selecionar mais de uma turma.
+              </p>
+            </div>
+          )}
 
           <div className="pt-4 flex gap-3">
             <button
