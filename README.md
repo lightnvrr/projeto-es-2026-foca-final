@@ -27,7 +27,7 @@ projeto-es-2026-foca-final/
 - Zod para validação de schemas
 
 **Frontend**
-- Next.js 15 (App Router)
+- Next.js 16 (App Router)
 - Tailwind CSS v4
 - TypeScript
 
@@ -63,20 +63,21 @@ cd backend
 
 **Suba o banco de dados:**
 ```bash
-docker compose -f docker-compose/postgres.docker-compose.yml up -d
+docker-compose -f docker-compose/postgres.docker-compose.yml up -d
 ```
 
 **Configure as variáveis de ambiente** — crie um arquivo `.env` na pasta `backend/` com o conteúdo:
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:3015/foca"
+DATABASE_URL="postgresql://foca_user:password@localhost:3015/foca"
 JWT_SECRET="sua_chave_secreta"
 ```
+
+> As credenciais acima correspondem exatamente ao que está configurado no `docker-compose/postgres.docker-compose.yml`.
 
 **Instale as dependências e prepare o banco:**
 ```bash
 npm install
-npx prisma migrate deploy
-npx prisma generate
+npx prisma migrate dev
 npx prisma db seed
 ```
 
@@ -120,10 +121,10 @@ Acesse **`http://localhost:3001/login`** no navegador.
 
 Após a primeira configuração, basta rodar os seguintes comandos:
 
-**Terminal 1 — Backend:**
+**Terminal 1 — Banco de dados + Backend:**
 ```bash
 cd backend
-docker compose -f docker-compose/postgres.docker-compose.yml up -d
+docker-compose -f docker-compose/postgres.docker-compose.yml up -d
 npm run dev
 ```
 
@@ -147,46 +148,62 @@ npm run dev -- -p 3001
 
 ---
 
-### Fluxo de teste — Coordenador
+### Fluxo de teste — Aluno
+
+O painel do aluno é totalmente integrado ao backend.
 
 1. Acesse `http://localhost:3001/login`
-2. Faça login com `coordenador@foca.dev` / `senha123`
-3. Visualize o painel com resumo de professores ativos e inativos
-4. Clique em **Cadastrar Equipe** e registre um novo professor ou coordenador
-5. Clique em **Sair** para encerrar a sessão
+2. Faça login com `aluno@foca.dev` / `senha123`
+3. Visualize as disciplinas disponíveis e os contadores do dia
+4. Clique em uma disciplina para **Iniciar** uma sessão de estudo
+5. Observe o cronômetro circular em tempo real
+6. Clique em **Pausar** para interromper a sessão e **Retomar** para continuar
+7. Clique em **Concluir** para finalizar — a sessão aparece registrada na lista
+8. Ao atingir 45 minutos, a sessão é encerrada automaticamente
+9. Clique em **Sair** para encerrar a sessão
+
+**Limites aplicados:**
+- Máximo de 3 disciplinas diferentes por dia
+- Máximo de 2 sessões por disciplina por dia
+- Máximo de 45 minutos por sessão
 
 ---
 
 ### Fluxo de teste — Professor
 
+> O painel de monitoramento exibe dados simulados (mock). A integração com o endpoint de turmas/alunos está prevista para próxima iteração.
+
 1. Faça login com `professor@foca.dev` / `senha123`
-2. Visualize o painel de monitoramento com status dos alunos por turma
-3. Alterne entre as turmas disponíveis
-4. Clique em **Cadastrar Aluno** e registre um novo aluno (informe nome, e-mail, senha, turma e turno)
+2. Visualize o painel com o status de rotina dos alunos por turma (dados mockados)
+3. Alterne entre as turmas disponíveis usando os botões no topo
+4. Clique em **Cadastrar Aluno** para registrar um novo aluno via formulário real (integrado ao backend)
 5. Clique em **Sair** para encerrar a sessão
 
 ---
 
-### Fluxo de teste — Aluno
+### Fluxo de teste — Coordenador
 
-1. Faça login com `aluno@foca.dev` / `senha123`
-2. Visualize as disciplinas disponíveis
-3. Clique em uma disciplina para **Iniciar** uma sessão de estudo
-4. Clique em **Pausar** para interromper a sessão
-5. Clique em **Retomar** para continuar
-6. Clique em **Concluir** para finalizar a sessão
-7. Verifique que a sessão aparece registrada na lista
-8. Clique em **Sair** para encerrar a sessão
+> O painel de professores exibe dados simulados (mock). A integração com o endpoint de professores vinculados está prevista para próxima iteração.
+
+1. Faça login com `coordenador@foca.dev` / `senha123`
+2. Visualize o painel com o resumo de professores ativos e inativos (dados mockados)
+3. Clique em **Cadastrar Equipe** para registrar um novo professor ou coordenador via formulário real (integrado ao backend)
+4. Clique em **Sair** para encerrar a sessão
 
 ---
 
 ## Funcionalidades
 
-- Login com autenticação JWT por papel (aluno, professor, coordenador)
-- Painel do aluno: registro de sessões de estudo por disciplina (iniciar, pausar, retomar, concluir)
-- Painel do professor: monitoramento da rotina dos alunos por turma + cadastro de alunos
-- Painel da coordenação: visão geral dos professores + cadastro de equipe pedagógica
-- Logout e proteção de rotas por papel
+| Funcionalidade | Status |
+|---|---|
+| Login com autenticação JWT por papel (aluno, professor, coordenador) | Implementado |
+| Painel do aluno: registro de sessões por disciplina (iniciar, pausar, retomar, concluir) | Implementado |
+| Limites de sessão (45 min, 2 sessões/disciplina, 3 disciplinas/dia) | Implementado |
+| Painel do professor: cadastro de alunos | Implementado |
+| Painel do professor: monitoramento de rotina por turma | Mock (integração pendente) |
+| Painel da coordenação: cadastro de equipe pedagógica | Implementado |
+| Painel da coordenação: visão geral dos professores | Mock (integração pendente) |
+| Logout e proteção de rotas por papel | Implementado |
 
 ---
 
