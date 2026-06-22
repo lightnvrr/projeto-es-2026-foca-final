@@ -173,6 +173,25 @@ export const sessaoRoutes: FastifyPluginAsync = async (fastify): Promise<void> =
     ),
   );
 
+  app.delete(
+    '/:id',
+    {
+      schema: {
+        tags: ['Sessoes'],
+        security: [{ bearerAuth: [] }],
+        params: paramsIdSchema,
+        response: { 204: z.void() },
+      },
+    },
+    withErrorHandler(
+      onlyAluno(async (request, reply) => {
+        const alunoId = await resolveAlunoId(request.user!.userId);
+        await service.cancelarSessao(request.params.id, alunoId);
+        return reply.code(204).send();
+      }),
+    ),
+  );
+
   app.get(
     '/hoje',
     {

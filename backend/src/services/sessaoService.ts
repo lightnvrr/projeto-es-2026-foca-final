@@ -150,6 +150,24 @@ export class SessaoService {
     return { sessao: sessaoAtualizada, status: statusFinal };
   }
 
+  async cancelarSessao(sessaoId: number, alunoId: number): Promise<void> {
+    const sessao = await this.prisma.sessaoEstudo.findUnique({
+      where: { id: sessaoId, aluno_id: alunoId },
+    });
+    if (!sessao) throw new SessaoNaoEncontradaError();
+
+    const statusCancelaveis: StatusSessao[] = [
+      StatusSessao.CRIADA,
+      StatusSessao.EM_ANDAMENTO,
+      StatusSessao.PAUSADA,
+    ];
+    if (!statusCancelaveis.includes(sessao.status)) {
+      throw new SessaoStatusInvalidoError('Sessão já encerrada não pode ser cancelada');
+    }
+
+    await this.prisma.sessaoEstudo.delete({ where: { id: sessaoId } });
+  }
+
   async listar(alunoId: number, options: ListarOptions = {}): Promise<ListarResult> {
     const { page = 1, limit = 20, status, date } = options;
 

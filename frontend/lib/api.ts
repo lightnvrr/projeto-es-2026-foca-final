@@ -175,6 +175,10 @@ export async function concluirSessao(
   });
 }
 
+export async function cancelarSessao(id: number): Promise<void> {
+  return request<void>(`/sessoes/${id}`, { method: "DELETE" });
+}
+
 // ── Usuários ─────────────────────────────────────────────────────────────────
 
 export type Role = "PROFESSOR" | "COORDENADOR" | "ALUNO";

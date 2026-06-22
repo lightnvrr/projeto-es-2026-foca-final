@@ -11,15 +11,18 @@ import {
   pausarSessao,
   retomarSessao,
   concluirSessao,
+  cancelarSessao,
   type Disciplina,
   type Sessao,
 } from "@/lib/api";
 
 const DURACAO_MAXIMA_SEG = 2_700; // RN-S1: 45 min — espelha backend config/sessao.ts
+const DURACAO_MINIMA_SEG = 1_800; // 30 min — sessões abaixo disso não são registradas
 const MAX_DISCIPLINAS_DIA = 3;    // RN-S2
 const MAX_SESSOES_DISCIPLINA = 2; // RN-S3
 
 type View = "home" | "session" | "done";
+type OrdemSessoes = "inicio" | "alfabetica";
 
 interface Limites {
   disciplinas_distintas_hoje: number;
@@ -50,6 +53,8 @@ export default function PainelAluno() {
   const [isRunning, setIsRunning] = useState(false);
   const [autoStopped, setAutoStopped] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [ordemSessoes, setOrdemSessoes] = useState<OrdemSessoes>("inicio");
+  const [showModalAbandono, setShowModalAbandono] = useState(false);
 
   const progress = Math.min((elapsed / DURACAO_MAXIMA_SEG) * 100, 100);
   const circumference = 2 * Math.PI * 44;
@@ -172,6 +177,11 @@ export default function PainelAluno() {
 
   async function completeSession() {
     if (!sessaoId) return;
+    if (elapsed < DURACAO_MINIMA_SEG) {
+      setIsRunning(false);
+      setShowModalAbandono(true);
+      return;
+    }
     setActionLoading(true);
     setIsRunning(false);
     try {
@@ -182,6 +192,21 @@ export default function PainelAluno() {
       alert(err instanceof Error ? err.message : "Erro ao concluir sessão");
     } finally {
       setActionLoading(false);
+    }
+  }
+
+  async function abandonarSessao() {
+    if (!sessaoId) return;
+    setActionLoading(true);
+    try {
+      await cancelarSessao(sessaoId);
+      await reloadSessoes();
+    } catch {
+      // silencioso — sessão já pode ter sido removida
+    } finally {
+      setActionLoading(false);
+      setShowModalAbandono(false);
+      goHome();
     }
   }
 
@@ -227,11 +252,44 @@ export default function PainelAluno() {
 
           {sessoesHoje.length > 0 && (
             <div className="mb-6">
-              <h2 className="text-xs font-semibold text-secondary uppercase tracking-widest mb-2">
-                Sessões de hoje
-              </h2>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xs font-semibold text-secondary uppercase tracking-widest">
+                  Sessões de hoje
+                </h2>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setOrdemSessoes("inicio")}
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium transition ${
+                      ordemSessoes === "inicio"
+                        ? "bg-primary text-surface"
+                        : "bg-surface text-secondary border border-primaryLight hover:bg-primaryLight"
+                    }`}
+                  >
+                    Por início
+                  </button>
+                  <button
+                    onClick={() => setOrdemSessoes("alfabetica")}
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium transition ${
+                      ordemSessoes === "alfabetica"
+                        ? "bg-primary text-surface"
+                        : "bg-surface text-secondary border border-primaryLight hover:bg-primaryLight"
+                    }`}
+                  >
+                    A–Z
+                  </button>
+                </div>
+              </div>
               <div className="flex flex-col gap-2">
-                {sessoesHoje.map((s) => {
+                {[...sessoesHoje]
+                  .sort((a, b) => {
+                    if (ordemSessoes === "alfabetica") {
+                      const nomeA = disciplinas.find((d) => d.id === a.disciplina_id)?.nome ?? "";
+                      const nomeB = disciplinas.find((d) => d.id === b.disciplina_id)?.nome ?? "";
+                      return nomeA.localeCompare(nomeB, "pt-BR");
+                    }
+                    return new Date(a.iniciada_em).getTime() - new Date(b.iniciada_em).getTime();
+                  })
+                  .map((s) => {
                   const nomeDisciplina =
                     disciplinas.find((d) => d.id === s.disciplina_id)?.nome ??
                     `Disciplina #${s.disciplina_id}`;
@@ -296,6 +354,41 @@ export default function PainelAluno() {
   if (view === "session" && disciplina) {
     return (
       <main className="min-h-screen bg-surfaceVariant flex items-center justify-center p-6">
+        {showModalAbandono && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
+            <div className="bg-surface rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-primary mb-2">Sessão abaixo do mínimo</h3>
+              <p className="text-sm text-secondary mb-1">
+                Você estudou <span className="font-semibold text-primary">{formatTime(elapsed)}</span>, mas o mínimo para registrar uma sessão é{" "}
+                <span className="font-semibold text-primary">30 min</span>.
+              </p>
+              <p className="text-sm text-secondary mb-6">
+                Se sair agora, esta sessão será descartada e não ficará no histórico.
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => { setShowModalAbandono(false); setIsRunning(true); }}
+                  disabled={actionLoading}
+                  className="w-full bg-primary text-surface font-bold py-2.5 rounded-lg hover:bg-secondary transition disabled:opacity-50"
+                >
+                  Continuar estudando
+                </button>
+                <button
+                  onClick={abandonarSessao}
+                  disabled={actionLoading}
+                  className="w-full border-2 border-red-400 text-red-500 font-semibold py-2.5 rounded-lg hover:bg-red-50 transition disabled:opacity-50"
+                >
+                  {actionLoading ? "Encerrando..." : "Descartar sessão"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="max-w-sm w-full bg-surface rounded-xl shadow-lg p-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-secondary mb-1">
             {isRunning ? "em andamento" : "pausada"}
